@@ -1,8 +1,12 @@
-# This is a sample Python script.
+from pydub import AudioSegment
+from pathlib import Path
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+pathlist = Path("input_wavs_dir")
 
+for path in pathlist:
+    filename = path.stem
+    AudioSegment.from_wav("/input/{}.wav".format(filename))\
+        .export("/output_dir/{}.mp3".format(filename), format="mp3")
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
