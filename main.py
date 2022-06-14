@@ -24,6 +24,41 @@ def convert():
 def score():
     pathlist = Path("input_wavs_dir")
 
+    # import soundfile as sf
+    # from pystoi import stoi
+    #
+    # clean, fs = sf.read('path/to/clean/audio')
+    # denoised, fs = sf.read('path/to/denoised/audio')
+    #
+    # # Clean and den should have the same length, and be 1D
+    # d = stoi(clean, denoised, fs, extended=False)
+
+    # from scipy.io import wavfile
+    # from pesq import pesq
+    #
+    # rate, ref = wavfile.read("./audio/speech.wav")
+    # rate, deg = wavfile.read("./audio/speech_bab_0dB.wav")
+    #
+    # print(pesq(rate, ref, deg, 'wb'))
+    # print(pesq(rate, ref, deg, 'nb'))
+    nf = 50
+    ss_mp4 = 0
+    ps_mp4 = 0
+    fs_mp4 = 0
+    ss_mp3 = 0
+    ps_mp3 = 0
+    fs_mp3 = 0
+    ss_ogg = 0
+    ps_ogg = 0
+    fs_ogg = 0
+    ss_flac = 0
+    ps_flac = 0
+    fs_flac = 0
+    ss_webm = 0
+    ps_webm = 0
+    fs_webm = 0
+
+
     for path in pathlist:
         filename = path.stem
         ext = path.suffix
@@ -38,6 +73,9 @@ def score():
             continue
         if ext == ".webm":
             continue
+
+def pickles():
+    pathlist = Path("input_wavs_dir")
 
 
 def print_hi(name):
