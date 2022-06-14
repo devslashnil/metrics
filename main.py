@@ -1,8 +1,18 @@
 from pydub import AudioSegment
 from pathlib import Path
 # pip install git+https://github.com/exeex/vocoder_eva.git
-from vocoder_eva.eval import eval_rmse_f0
 import librosa
+import soundfile as sf
+from pystoi import stoi
+from scipy.io import wavfile
+# TODO: linux
+# from pesq import pesq
+from collections import defaultdict
+import os.path
+
+path_wavs = './original_wavs'
+num_files = len([f for f in os.listdir(path_wavs)
+                 if os.path.isfile(os.path.join(path_wavs, f))])
 
 def convert():
     pathlist = Path("input_wavs_dir")
@@ -11,80 +21,65 @@ def convert():
         filename = path.stem
 
         AudioSegment.from_wav("/input/{}.wav".format(filename)) \
-            .export("/output_dir/{}.mp4}.".format(filename), format="mp4")
+            .export("/converted_wavs/{}.mp4}.".format(filename), format="mp4")
         AudioSegment.from_wav("/input/{}.wav".format(filename))\
-            .export("/output_dir/{}.mp3".format(filename), format="mp3")
+            .export("/converted_wavs/{}.mp3".format(filename), format="mp3")
         AudioSegment.from_wav("/input/{}.wav".format(filename)) \
-            .export("/output_dir/{}.ogg".format(filename), format="ogg")
+            .export("/converted_wavs/{}.ogg".format(filename), format="ogg")
         AudioSegment.from_wav("/input/{}.wav".format(filename)) \
-            .export("/output_dir/{}.flac".format(filename), format="flac")
+            .export("/converted_wavs/{}.flac".format(filename), format="flac")
         AudioSegment.from_wav("/input/{}.wav".format(filename)) \
-            .export("/output_dir/{}.webm".format(filename), format="webm")
+            .export("/converted_wavs/{}.webm".format(filename), format="webm")
 
 def score():
-    pathlist = Path("input_wavs_dir")
+    d = {}
+    for i in ['.hifi', '.mp4', '.mp3', '.ogg', '.flac', '.webm']:
+        d[i] = {}
+        for j in ['stoi', 'pesq', 'size']:
+            d[j] = 0
 
-    # import soundfile as sf
-    # from pystoi import stoi
-    #
-    # clean, fs = sf.read('path/to/clean/audio')
-    # denoised, fs = sf.read('path/to/denoised/audio')
-    #
-    # # Clean and den should have the same length, and be 1D
-    # d = stoi(clean, denoised, fs, extended=False)
-
-    # from scipy.io import wavfile
-    # from pesq import pesq
-    #
-    # rate, ref = wavfile.read("./audio/speech.wav")
-    # rate, deg = wavfile.read("./audio/speech_bab_0dB.wav")
-    #
-    # print(pesq(rate, ref, deg, 'wb'))
-    # print(pesq(rate, ref, deg, 'nb'))
-    nf = 50
-    ss_mp4 = 0
-    ps_mp4 = 0
-    fs_mp4 = 0
-    ss_mp3 = 0
-    ps_mp3 = 0
-    fs_mp3 = 0
-    ss_ogg = 0
-    ps_ogg = 0
-    fs_ogg = 0
-    ss_flac = 0
-    ps_flac = 0
-    fs_flac = 0
-    ss_webm = 0
-    ps_webm = 0
-    fs_webm = 0
-
-
-    for path in pathlist:
+    for path in Path("converted_wavs"):
         filename = path.stem
         ext = path.suffix
+        clean, fs = sf.read('./original_wavs/{}.wav'.format(filename))
+        denoised, fs = sf.read(path)
+        d[ext]['stoi'] += stoi(clean, denoised, fs, extended=False)
+        rate, ref = wavfile.read('./original_wavs/{}.wav'.format(filename))
+        rate, deg = wavfile.read(path)
+        # TODO: linux
+        # d[ext]['pesq'] += pesq(rate, ref, deg, 'wb')
+        d[ext]['size'] += path.stat().st_size
+        if (d['.hifi']['stoi'] == 0):
+            path = Path("generated_wavs")
+            denoised, fs = sf.read(path)
+            rate, deg = wavfile.read(path)
+            d['.hifi']['stoi'] += stoi(clean, denoised, fs, extended=False)
+            # d['.hifi']['pesq'] += pesq(rate, ref, deg, 'wb')
+            d['.hifi']['size'] += path.stat().st_size
 
-        if ext == ".mp4":
-            continue
-        if ext == ".mp3":
-            continue
-        if ext == ".ogg":
-            continue
-        if ext == ".flac":
-            continue
-        if ext == ".webm":
-            continue
+    for i in ['.mp4', '.mp3', '.ogg', '.flac', '.webm']:
+        d[i] = {}
+        for j in ['stoi', 'pesq', 'size']:
+            d[j] /= num_files
+    print(d)
+
 
 def pickles():
-    pathlist = Path("input_wavs_dir")
+    s = 0
+    for path in Path("mel_files"):
+         s += path.stat().st_size
+    s /= num_files
+    print(s)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
+def main():
+    convert()
+    score()
+    pickles()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    main()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

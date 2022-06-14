@@ -3,7 +3,7 @@ scipy
 pydub
 pathlib
 librosa
-git+https://github.com/exeex/vocoder_eva.git#egg=vocoder_eva
 pesq
 stoi
 soundfile
+pystoi
